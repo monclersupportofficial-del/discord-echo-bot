@@ -13,7 +13,6 @@ class MyClient(discord.Client):
     async def setup_hook(self):
         await self.tree.sync()
 
-
 client = MyClient()
 
 
@@ -24,32 +23,19 @@ async def on_ready():
 
 @client.tree.command(
     name="echo",
-    description="Send a message as the app"
+    description="Send a message"
 )
-@app_commands.describe(
-    message="What you want the app to say"
-)
+@app_commands.describe(message="Message to send")
 async def echo(interaction: discord.Interaction, message: str):
 
-    # Hidden confirmation for you
     await interaction.response.send_message(
         "Sent!",
         ephemeral=True
     )
 
-    # Send the message publicly in servers
-    if interaction.guild:
-        await interaction.followup.send(
-            message,
-            ephemeral=False
-        )
-
-    # Send the message in DMs
-    else:
-        await interaction.followup.send(
-            message,
-            ephemeral=False
-        )
+    await interaction.followup.send(
+        message
+    )
 
 
 client.run(TOKEN)
