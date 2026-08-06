@@ -3,12 +3,13 @@ import requests
 
 APPLICATION_ID = os.getenv("APPLICATION_ID")
 TOKEN = os.getenv("DISCORD_TOKEN")
-
 url = f"https://discord.com/api/v10/applications/{APPLICATION_ID}/commands"
 
 command = {
     "name": "echo",
     "description": "Send a message as the app",
+    "integration_types": [1],
+    "contexts": [0, 1, 2],
     "options": [
         {
             "name": "message",
@@ -18,6 +19,7 @@ command = {
         }
     ]
 }
+
 
 headers = {
     "Authorization": f"Bot {TOKEN}",
