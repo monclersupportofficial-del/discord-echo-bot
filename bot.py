@@ -1,39 +1,55 @@
 import os
 import discord
-from discord.ext import commands
 from discord import app_commands
 
 TOKEN = os.getenv("TOKEN")
 
-intents = discord.Intents.default()
+class MyClient(discord.Client):
+    def __init__(self):
+        intents = discord.Intents.default()
+        super().__init__(intents=intents)
+        self.tree = app_commands.CommandTree(self)
 
-bot = commands.Bot(
-    command_prefix="!",
-    intents=intents
-)
+    async def setup_hook(self):
+        await self.tree.sync()
 
 
-@bot.event
+client = MyClient()
+
+
+@client.event
 async def on_ready():
-    await bot.tree.sync()
-    print(f"Logged in as {bot.user}")
+    print(f"Logged in as {client.user}")
 
 
-@bot.tree.command(name="echo", description="Make the bot say something")
-@app_commands.describe(message="Message to send")
+@client.tree.command(
+    name="echo",
+    description="Send a message as the app"
+)
+@app_commands.describe(
+    message="What you want the app to say"
+)
 async def echo(interaction: discord.Interaction, message: str):
 
-    # Hidden message only you see
+    # Hidden confirmation for you
     await interaction.response.send_message(
         "Sent!",
         ephemeral=True
     )
 
-    # Public message from the bot
-    await interaction.followup.send(
-        message,
-        ephemeral=False
-    )
+    # Send the message publicly in servers
+    if interaction.guild:
+        await interaction.followup.send(
+            message,
+            ephemeral=False
+        )
+
+    # Send the message in DMs
+    else:
+        await interaction.followup.send(
+            message,
+            ephemeral=False
+        )
 
 
-bot.run(TOKEN)
+client.run(TOKEN)
