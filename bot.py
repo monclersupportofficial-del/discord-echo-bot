@@ -1,41 +1,64 @@
 import os
-import discord
-from discord import app_commands
+from flask import Flask, request, jsonify
+import nacl.signing
+import nacl.exceptions
+import requests
 
-TOKEN = os.getenv("TOKEN")
+app = Flask(__name__)
 
-class MyClient(discord.Client):
-    def __init__(self):
-        intents = discord.Intents.default()
-        super().__init__(intents=intents)
-        self.tree = app_commands.CommandTree(self)
-
-    async def setup_hook(self):
-        await self.tree.sync()
-
-client = MyClient()
+PUBLIC_KEY = os.getenv("PUBLIC_KEY")
 
 
-@client.event
-async def on_ready():
-    print(f"Logged in as {client.user}")
+def verify_signature(req):
+    signature = req.headers.get("X-Signature-Ed25519")
+    timestamp = req.headers.get("X-Signature-Timestamp")
+
+    body = req.data.decode("utf-8")
+
+    try:
+        verify_key = nacl.signing.VerifyKey(bytes.fromhex(PUBLIC_KEY))
+        verify_key.verify(
+            (timestamp + body).encode(),
+            bytes.fromhex(signature)
+        )
+        return True
+
+    except nacl.exceptions.BadSignatureError:
+        return False
 
 
-@client.tree.command(
-    name="echo",
-    description="Send a message"
-)
-@app_commands.describe(message="Message to send")
-async def echo(interaction: discord.Interaction, message: str):
+@app.route("/", methods=["POST"])
+def interactions():
 
-    await interaction.response.send_message(
-        "Sent!",
-        ephemeral=True
+    if not verify_signature(request):
+        return "invalid request", 401
+
+    data = request.json
+
+    # Discord verification
+    if data["type"] == 1:
+        return jsonify({"type": 1})
+
+    # Slash command
+    if data["type"] == 2:
+
+        command = data["data"]["name"]
+
+        if command == "echo":
+            message = data["data"]["options"][0]["value"]
+
+            return jsonify({
+                "type": 4,
+                "data": {
+                    "content": message
+                }
+            })
+
+    return jsonify({})
+
+
+if __name__ == "__main__":
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 10000))
     )
-
-    await interaction.followup.send(
-        message
-    )
-
-
-client.run(TOKEN)
