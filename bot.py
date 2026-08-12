@@ -15,9 +15,7 @@ class MyClient(discord.Client):
         await self.tree.sync()
         print("Slash commands synced.")
 
-
 client = MyClient()
-
 
 @client.tree.command(
     name="echo",
@@ -35,33 +33,12 @@ async def echo(interaction: discord.Interaction, message: str):
     # Private confirmation
     await interaction.response.send_message(
         "Sent!",
-        ephemeral=True@client.tree.command(
-    name="echo",
-    description="Send a message as the app"
-)
-@app_commands.allowed_installs(guilds=False, users=True)
-@app_commands.allowed_contexts(
-    guilds=False,
-    dms=True,
-    private_channels=True
-)
-@app_commands.describe(message="The message to send")
-async def echo(interaction: discord.Interaction, message: str):
-
-    await interaction.response.send_message(
-        "Sent!",
         ephemeral=True
     )
-
-    await interaction.channel.send(message)
-    
-    )
-
 
     # Public message
     await interaction.followup.send(
         message
     )
-
 
 client.run(TOKEN)
