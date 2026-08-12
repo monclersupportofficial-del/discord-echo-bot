@@ -37,7 +37,7 @@ async def echo(interaction: discord.Interaction, message: str):
     )
 
     # Public message
-    await interaction.followup.send(
+    await interaction.channel.send(
         message
     )
 
