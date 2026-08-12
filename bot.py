@@ -37,8 +37,6 @@ async def echo(interaction: discord.Interaction, message: str):
     )
 
     # Public message
-    await interaction.channel.send(
-        message
-    )
-
+    await interaction.channel.send(message)
+    
 client.run(TOKEN)
